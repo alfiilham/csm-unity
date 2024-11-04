@@ -1,0 +1,17 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: unity-<ARRAY_ID>-fc
+provisioner: csi-unity.dellemc.com
+reclaimPolicy: Delete
+allowVolumeExpansion: true
+volumeBindingMode: WaitForFirstConsumer
+parameters:
+  protocol: FC
+  arrayId: <ARRAY_ID>
+  storagePool: <STORAGE_POOL>
+  thinProvisioned: "true"
+  isDataReductionEnabled: "true"
+  csi.storage.k8s.io/fstype: xfs
+mountOptions:
+  - "context"
