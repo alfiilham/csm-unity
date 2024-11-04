@@ -1,0 +1,64 @@
+apiVersion: storage.dell.com/v1
+kind: ContainerStorageModule
+metadata:
+  name: unity
+  namespace: unity
+spec:
+  driver:
+    csiDriverType: "unity"
+    csiDriverSpec:
+      fSGroupPolicy: "ReadWriteOnceWithFSType"
+      storageCapacity: true
+    configVersion: v2.10.1
+    replicas: 2
+    dnsPolicy: ClusterFirstWithHostNet
+    forceUpdate: false
+    forceRemoveDriver: true
+    common:
+      image: "dellemc/csi-unity:v2.10.1"
+      imagePullPolicy: IfNotPresent
+      envs:
+        - name: X_CSI_UNITY_ALLOW_MULTI_POD_ACCESS
+          value: "false"
+        - name: X_CSI_EPHEMERAL_STAGING_PATH
+          value: "/var/lib/kubelet/plugins/kubernetes.io/csi/pv/"
+        - name: X_CSI_ISCSI_CHROOT
+          value: "/noderoot"
+        - name: X_CSI_UNITY_SYNC_NODEINFO_INTERVAL
+          value: "15"
+        - name: KUBELET_CONFIG_DIR
+          value: /var/lib/kubelet
+        - name: CSI_LOG_LEVEL
+          value: debug
+        - name: TENANT_NAME
+          value: ""
+        - name: CERT_SECRET_COUNT
+          value: "1"
+        - name: X_CSI_UNITY_SKIP_CERTIFICATE_VALIDATION
+          value: "true"
+    sideCars:
+      - name: provisioner
+        image: registry.k8s.io/sig-storage/csi-provisioner:v4.0.0
+        args: ["--volume-name-prefix=csivol"]
+      - name: attacher
+        image: registry.k8s.io/sig-storage/csi-attacher:v4.5.0
+      - name: registrar
+        image: registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.10.0
+      - name: resizer
+        image: registry.k8s.io/sig-storage/csi-resizer:v1.10.0
+      - name: snapshotter
+        image: registry.k8s.io/sig-storage/csi-snapshotter:v7.0.1
+      - name: csi-metadata-retriever
+        image: dellemc/csi-metadata-retriever:v1.7.3
+      - name: external-health-monitor
+        enabled: false
+        args: ["--monitor-interval=60s"]
+        image: registry.k8s.io/sig-storage/csi-external-health-monitor-controller:v0.11.0
+    controller:
+      envs:
+        - name: X_CSI_HEALTH_MONITOR_ENABLED
+          value: "false"
+    node:
+      envs:
+        - name: X_CSI_HEALTH_MONITOR_ENABLED
+          value: "false"
