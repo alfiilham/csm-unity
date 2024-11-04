@@ -10,7 +10,7 @@ spec:
       fSGroupPolicy: "ReadWriteOnceWithFSType"
       storageCapacity: true
     configVersion: v2.10.1
-    replicas: 3
+    replicas: 2
     dnsPolicy: ClusterFirstWithHostNet
     forceUpdate: false
     forceRemoveDriver: true
@@ -19,7 +19,7 @@ spec:
       imagePullPolicy: IfNotPresent
       envs:
         - name: X_CSI_UNITY_ALLOW_MULTI_POD_ACCESS
-          value: "false"
+          value: "true"  # Enable multi-pod access for RWX
         - name: X_CSI_EPHEMERAL_STAGING_PATH
           value: "/var/lib/kubelet/plugins/kubernetes.io/csi/pv/"
         - name: X_CSI_ISCSI_CHROOT
@@ -36,6 +36,8 @@ spec:
           value: "1"
         - name: X_CSI_UNITY_SKIP_CERTIFICATE_VALIDATION
           value: "true"
+        - name: X_CSI_UNITY_STORAGE_PROTOCOL
+          value: "fc"  # Ensure FC is specified as the protocol
     sideCars:
       - name: provisioner
         image: registry.k8s.io/sig-storage/csi-provisioner:v4.0.0
